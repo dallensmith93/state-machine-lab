@@ -28,7 +28,7 @@ export default function TransitionPanel({ machine, currentState, history }: Tran
           relevant.map((transition) => (
             <li key={`${transition.from}-${transition.event}`}>
               <code>{transition.from}</code>
-              <span> --{transition.event}--> </span>
+              <span> --{transition.event}--&gt; </span>
               <code>{transition.to}</code>
             </li>
           ))
@@ -43,7 +43,9 @@ export default function TransitionPanel({ machine, currentState, history }: Tran
           history.slice(0, 8).map((item, index) => (
             <li key={`${item.event}-${index}`}>
               <span>{item.event}</span>
-              <span>{item.from} -> {item.to}</span>
+              <span>
+                {item.from} -&gt; {item.to}
+              </span>
               <span className={item.changed ? "badge-ok" : "badge-warn"}>
                 {item.changed ? "changed" : "ignored"}
               </span>
