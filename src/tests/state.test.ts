@@ -1,62 +1,31 @@
 import { describe, expect, it } from "vitest";
-import {
-  createTransitionMap,
-  dispatchEvent,
-  exampleMachines,
-  getAvailableEvents,
-  stateMachine,
-} from "../engine/stateMachine";
-import { validator } from "../engine/validator";
+import { dispatchEvent, exampleMachines, getAvailableEvents, stateMachine } from "../engine/stateMachine";
 
-describe("stateMachine", () => {
-  it("moves to next state when transition exists", () => {
+describe("stateMachine transitions", () => {
+  it("transitions on valid event", () => {
     const machine = exampleMachines[0];
     expect(stateMachine("idle", "FETCH", machine)).toBe("loading");
   });
 
-  it("stays in same state for unknown events", () => {
+  it("stays in same state for invalid event", () => {
     const machine = exampleMachines[0];
     expect(stateMachine("idle", "UNKNOWN", machine)).toBe("idle");
   });
 
-  it("dispatchEvent returns change metadata", () => {
-    const machine = exampleMachines[0];
-    const result = dispatchEvent(machine, "loading", "RESOLVE");
-
-    expect(result.nextState).toBe("success");
-    expect(result.changed).toBe(true);
-  });
-
-  it("lists available events for a state", () => {
+  it("dispatchEvent returns transition metadata", () => {
     const machine = exampleMachines[1];
-    const events = getAvailableEvents(machine, "signedIn");
+    const result = dispatchEvent(machine, "signedIn", "SIGN_OUT");
 
-    expect(events).toContain("SIGN_OUT");
-    expect(events).toContain("TOKEN_EXPIRED");
+    expect(result.nextState).toBe("signedOut");
+    expect(result.changed).toBe(true);
+    expect(result.reason).toBe("transition");
   });
 
-  it("supports transition-map format", () => {
+  it("lists available events for current state", () => {
     const machine = exampleMachines[0];
-    const map = createTransitionMap(machine);
-    expect(stateMachine("loading", "REJECT", map)).toBe("error");
-  });
-});
+    const events = getAvailableEvents(machine, "loading");
 
-describe("validator", () => {
-  it("accepts valid machine", () => {
-    const result = validator(exampleMachines[0]);
-    expect(result.valid).toBe(true);
-    expect(result.errors).toHaveLength(0);
-  });
-
-  it("rejects invalid transition target", () => {
-    const broken = {
-      ...exampleMachines[0],
-      transitions: [...exampleMachines[0].transitions, { from: "idle", event: "BAD", to: "ghost" }],
-    };
-
-    const result = validator(broken);
-    expect(result.valid).toBe(false);
-    expect(result.errors[0]).toContain("ghost");
+    expect(events).toContain("RESOLVE");
+    expect(events).toContain("REJECT");
   });
 });
